@@ -108,6 +108,24 @@ jobs:
           echo "Latest commit ID and log:"
           git -C openwrt log -1 --pretty=format:"%H %s"
 
+      - name: Extract kernel version
+        id: extract_kernel
+        working-directory: ./openwrt
+        run: |
+          KERNEL_LOG=$(git log --oneline | grep -Eo 'kernel: bump [0-9]+\.[0-9]+ to [0-9]+\.[0-9]+\.[0-9]+' | head -n 1)
+          KERNEL_VERSION=$(echo "$KERNEL_LOG" | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')
+          if [ -z "$KERNEL_VERSION" ]; then
+            echo "Kernel version not found in git log."
+            exit 1
+          fi
+          echo "KERNEL_VERSION=$KERNEL_VERSION" >> $GITHUB_OUTPUT
+          echo "Kernel version: $KERNEL_VERSION"
+
+      - name: Update release notes
+        working-directory: ./
+        run: |
+          sed -i "s/{{KERNEL_VERSION}}/${{ steps.extract_kernel.outputs.KERNEL_VERSION }}/g" release.md
+
       - name: Load custom feeds
         run: |
           [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
@@ -140,7 +158,6 @@ jobs:
         id: compile
         working-directory: ./openwrt
         run: |
-          echo -e "$(nproc) thread compile"
           make V=s -j1
           echo "status=success" >> $GITHUB_OUTPUT
           grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
@@ -188,7 +205,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.tag.outputs.release_tag }}
-          body_path: release.txt
+          body_path: release.md
           files: ${{ env.FIRMWARE }}/*
 
       # - name: Delete workflow runs

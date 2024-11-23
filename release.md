@@ -1,6 +1,6 @@
 ## Overview
 
-- Kernel Update: Upgraded to 6.6.59 for enhanced system performance and stability.
+- Kernel Update: Upgraded to **{{KERNEL_VERSION}}** for enhanced system performance and stability.
 
 ## Integrated Services
 
