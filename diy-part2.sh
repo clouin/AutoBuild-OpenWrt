@@ -93,4 +93,23 @@ else
   echo "[ERROR] Failed to replace luci-theme-argon."
 fi
 
+# 8. Copy xray-core Makefile from helloworld to packages
+SOURCE_MAKEFILE="feeds/helloworld/xray-core/Makefile"
+TARGET_MAKEFILE="feeds/packages/net/xray-core/Makefile"
+
+if [ -f "$SOURCE_MAKEFILE" ]; then
+  if [ -f "$TARGET_MAKEFILE" ]; then
+    cp "$SOURCE_MAKEFILE" "$TARGET_MAKEFILE"
+    if [ $? -eq 0 ]; then
+      echo "[SUCCESS] Copied $SOURCE_MAKEFILE to $TARGET_MAKEFILE."
+    else
+      echo "[ERROR] Failed to copy $SOURCE_MAKEFILE to $TARGET_MAKEFILE."
+    fi
+  else
+    echo "[WARNING] Target file not found: $TARGET_MAKEFILE."
+  fi
+else
+  echo "[WARNING] Source file not found: $SOURCE_MAKEFILE."
+fi
+
 echo "[INFO] Script execution completed."
