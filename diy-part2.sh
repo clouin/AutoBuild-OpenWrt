@@ -93,23 +93,21 @@ else
   echo "[ERROR] Failed to replace luci-theme-argon."
 fi
 
-# 8. Copy xray-core Makefile from helloworld to packages
-SOURCE_MAKEFILE="feeds/helloworld/xray-core/Makefile"
-TARGET_MAKEFILE="feeds/packages/net/xray-core/Makefile"
+# 8. Compare xray-core Makefile versions and copy the higher version
+SRC_MAKEFILE="feeds/helloworld/xray-core/Makefile"
+DST_MAKEFILE="feeds/packages/net/xray-core/Makefile"
 
-if [ -f "$SOURCE_MAKEFILE" ]; then
-  if [ -f "$TARGET_MAKEFILE" ]; then
-    cp "$SOURCE_MAKEFILE" "$TARGET_MAKEFILE"
-    if [ $? -eq 0 ]; then
-      echo "[SUCCESS] Copied $SOURCE_MAKEFILE to $TARGET_MAKEFILE."
-    else
-      echo "[ERROR] Failed to copy $SOURCE_MAKEFILE to $TARGET_MAKEFILE."
-    fi
+if [ -f "$SRC_MAKEFILE" ] && [ -f "$DST_MAKEFILE" ]; then
+  SRC_VERSION=$(grep -Po 'PKG_VERSION:=\K[0-9.]*' "$SRC_MAKEFILE")
+  DST_VERSION=$(grep -Po 'PKG_VERSION:=\K[0-9.]*' "$DST_MAKEFILE")
+  if [ "$(printf '%s\n%s' "$SRC_VERSION" "$DST_VERSION" | sort -V | tail -n1)" == "$SRC_VERSION" ]; then
+    cp "$SRC_MAKEFILE" "$DST_MAKEFILE"
+    echo "[INFO] Copied higher version of xray-core Makefile from $SRC_MAKEFILE to $DST_MAKEFILE."
   else
-    echo "[WARNING] Target file not found: $TARGET_MAKEFILE."
+    echo "[INFO] Destination Makefile version is higher or the same. No copy needed."
   fi
 else
-  echo "[WARNING] Source file not found: $SOURCE_MAKEFILE."
+  echo "[WARNING] Makefile not found: Source ($SRC_MAKEFILE) or Destination ($DST_MAKEFILE)."
 fi
 
 echo "[INFO] Script execution completed."
