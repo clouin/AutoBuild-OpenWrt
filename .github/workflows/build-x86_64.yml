@@ -29,6 +29,7 @@ env:
   CONFIG_FILE: x86_64.config
   DIY_P1_SH: diy-part1.sh
   DIY_P2_SH: diy-part2.sh
+  EXTRACT_SH: extract-versions.sh
   UPLOAD_BIN_DIR: ${{ github.event.inputs.UPLOAD_BIN_DIR }}
   UPLOAD_FIRMWARE: ${{ github.event.inputs.UPLOAD_FIRMWARE }}
   UPLOAD_RELEASE: ${{ github.event.inputs.UPLOAD_RELEASE }}
@@ -108,24 +109,6 @@ jobs:
           echo "Latest commit ID and log:"
           git -C openwrt log -1 --pretty=format:"%H %s"
 
-      - name: Extract kernel version
-        id: extract_kernel
-        working-directory: ./openwrt
-        run: |
-          KERNEL_LOG=$(git log --oneline | grep -Eo 'kernel: bump [0-9]+\.[0-9]+ to [0-9]+\.[0-9]+\.[0-9]+' | head -n 1)
-          KERNEL_VERSION=$(echo "$KERNEL_LOG" | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')
-          if [ -z "$KERNEL_VERSION" ]; then
-            echo "Kernel version not found in git log."
-            exit 1
-          fi
-          echo "KERNEL_VERSION=$KERNEL_VERSION" >> $GITHUB_OUTPUT
-          echo "Kernel version: $KERNEL_VERSION"
-
-      - name: Update release notes
-        working-directory: ./
-        run: |
-          sed -i "s/{{KERNEL_VERSION}}/${{ steps.extract_kernel.outputs.KERNEL_VERSION }}/g" release.md
-
       - name: Load custom feeds
         run: |
           [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
@@ -167,6 +150,22 @@ jobs:
       - name: Check space usage
         if: (!cancelled())
         run: df -hT
+
+      - name: Extract all versions
+        id: extract_versions
+        working-directory: ./openwrt
+        run: |
+          chmod +x $GITHUB_WORKSPACE/$EXTRACT_SH
+          cd $GITHUB_WORKSPACE/openwrt
+          $GITHUB_WORKSPACE/$EXTRACT_SH
+
+      - name: Update release notes
+        run: |
+          sed -i "s/{{KERNEL_VERSION}}/${{ steps.extract_versions.outputs.KERNEL_VERSION }}/g" release.md
+          sed -i "s/{{XRAY_VERSION}}/${{ steps.extract_versions.outputs.XRAY_VERSION }}/g" release.md
+          sed -i "s/{{ZEROTIER_VERSION}}/${{ steps.extract_versions.outputs.ZEROTIER_VERSION }}/g" release.md
+          sed -i "s/{{FRP_VERSION}}/${{ steps.extract_versions.outputs.FRP_VERSION }}/g" release.md
+          sed -i "s/{{IPERF_VERSION}}/${{ steps.extract_versions.outputs.IPERF_VERSION }}/g" release.md
 
       - name: Upload bin directory
         uses: actions/upload-artifact@v4

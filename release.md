@@ -1,22 +1,21 @@
-## Overview
+## Highlights
 
-- Kernel Update: Upgraded to **{{KERNEL_VERSION}}** for enhanced system performance and stability.
+- **Linux Kernel** bumped to **{{KERNEL_VERSION}}**, improving hardware compatibility, security patches, and performance optimizations.
 
 ## Integrated Services
 
-- ShadowSocksR Plus+: Provides proxy services with support for various encryption protocols.
-- AdGuard Home: Integrated ad-blocking for a secure browsing experience.
-- ZeroTier: Virtual private networking for convenient remote connections.
-- KMS Server: LAN-based activation for Windows and Office products.
-- Frpc: Internal network tunneling with multi-protocol support.
+| Service            | Version                        | Description                                                 |
+| ------------------ | ------------------------------ | ----------------------------------------------------------- |
+| ShadowSocksR Plus+ | Xray-core **{{XRAY_VERSION}}** | Secure SOCKS5 proxy with multi-protocol encryption support. |
+| AdGuard Home       | _latest_                       | DNS-level ad-blocking and privacy protection.               |
+| ZeroTier           | **{{ZEROTIER_VERSION}}**       | Peer-to-peer virtual networking for seamless remote access. |
+| KMS Server         | _latest_                       | LAN-based activation for Windows and Office products.       |
+| Frpc               | **{{FRP_VERSION}}**            | Reverse proxy to expose internal services securely.         |
+| iPerf3             | **{{IPERF_VERSION}}**          | Network performance testing with autostart integration.     |
 
-## Performance Optimization
+## Theme & UI
 
-- iPerf3 Autostart: Network performance testing with automatic startup, ideal for monitoring bandwidth.
-
-## Theme and UI
-
-- Argon Theme: Designed with JerryKuKu’s Argon theme, offering a clean, modern interface with dark mode support.
+- **Argon Theme** by JerryKuKu: Modern, responsive interface with dark mode and customizable widgets.
 
 ## Use Cases
 
