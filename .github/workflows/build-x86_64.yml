@@ -30,6 +30,7 @@ env:
   DIY_P1_SH: diy-part1.sh
   DIY_P2_SH: diy-part2.sh
   EXTRACT_SH: extract-versions.sh
+  RELEASE_NOTES: release.md
   UPLOAD_BIN_DIR: ${{ github.event.inputs.UPLOAD_BIN_DIR }}
   UPLOAD_FIRMWARE: ${{ github.event.inputs.UPLOAD_FIRMWARE }}
   UPLOAD_RELEASE: ${{ github.event.inputs.UPLOAD_RELEASE }}
@@ -161,11 +162,11 @@ jobs:
 
       - name: Update release notes
         run: |
-          sed -i "s/{{KERNEL_VERSION}}/${{ steps.extract_versions.outputs.KERNEL_VERSION }}/g" release.md
-          sed -i "s/{{XRAY_VERSION}}/${{ steps.extract_versions.outputs.XRAY_VERSION }}/g" release.md
-          sed -i "s/{{ZEROTIER_VERSION}}/${{ steps.extract_versions.outputs.ZEROTIER_VERSION }}/g" release.md
-          sed -i "s/{{FRP_VERSION}}/${{ steps.extract_versions.outputs.FRP_VERSION }}/g" release.md
-          sed -i "s/{{IPERF_VERSION}}/${{ steps.extract_versions.outputs.IPERF_VERSION }}/g" release.md
+          sed -i "s/{{KERNEL_VERSION}}/${{ steps.extract_versions.outputs.KERNEL_VERSION }}/g" $RELEASE_NOTES
+          sed -i "s/{{XRAY_VERSION}}/${{ steps.extract_versions.outputs.XRAY_VERSION }}/g" $RELEASE_NOTES
+          sed -i "s/{{ZEROTIER_VERSION}}/${{ steps.extract_versions.outputs.ZEROTIER_VERSION }}/g" $RELEASE_NOTES
+          sed -i "s/{{FRP_VERSION}}/${{ steps.extract_versions.outputs.FRP_VERSION }}/g" $RELEASE_NOTES
+          sed -i "s/{{IPERF_VERSION}}/${{ steps.extract_versions.outputs.IPERF_VERSION }}/g" $RELEASE_NOTES
 
       - name: Upload bin directory
         uses: actions/upload-artifact@v4
@@ -204,7 +205,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.tag.outputs.release_tag }}
-          body_path: release.md
+          body_path: ${{ env.RELEASE_NOTES }}
           files: ${{ env.FIRMWARE }}/*
 
       # - name: Delete workflow runs
