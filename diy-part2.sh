@@ -80,7 +80,32 @@ else
   echo "[WARNING] Controller file not found: $LUCI_ZEROTIER_CONTROLLER_PATH."
 fi
 
-# 7. Replace luci-theme-argon with jerrykuku's version (18.06 branch)
+# 7. Install ZeroTier health‐check script & crontab
+CRON_FILE="feeds/luci/applications/luci-app-zerotier/root/etc/crontabs/root"
+CHECK_SCRIPT_DEST="feeds/luci/applications/luci-app-zerotier/root/etc/zerotier/check_zerotier.sh"
+
+# Ensure destination directories exist
+mkdir -p "$(dirname "$CHECK_SCRIPT_DEST")"
+mkdir -p "$(dirname "$CRON_FILE")"
+
+# Copy and set permissions for the check script
+cp "$GITHUB_WORKSPACE/$SCRIPTS_PATH/check_zerotier.sh" "$CHECK_SCRIPT_DEST"
+if [ $? -eq 0 ]; then
+  chmod +x "$CHECK_SCRIPT_DEST"
+  echo "[SUCCESS] Installed ZeroTier health-check script to $CHECK_SCRIPT_DEST."
+else
+  echo "[ERROR] Failed to install ZeroTier health-check script."
+fi
+
+# Create or update the crontab for root
+if ! grep -q "check_zerotier.sh" "$CRON_FILE" 2>/dev/null; then
+  echo "*/10 * * * * /etc/zerotier/check_zerotier.sh >> /var/log/check_zerotier.log 2>&1" >>"$CRON_FILE"
+  echo "[SUCCESS] Added ZeroTier health-check cron job."
+else
+  echo "[INFO] ZeroTier health-check cron job already exists."
+fi
+
+# 8. Replace luci-theme-argon with jerrykuku's version (18.06 branch)
 LUCITHEME_ARGON="feeds/luci/themes/luci-theme-argon"
 if [ -d "$LUCITHEME_ARGON" ]; then
   rm -rf "$LUCITHEME_ARGON"
@@ -93,7 +118,7 @@ else
   echo "[ERROR] Failed to replace luci-theme-argon."
 fi
 
-# 8. Compare xray-core Makefile versions and copy the higher version
+# 9. Compare xray-core Makefile versions and copy the higher version
 SRC_MAKEFILE="feeds/helloworld/xray-core/Makefile"
 DST_MAKEFILE="feeds/packages/net/xray-core/Makefile"
 
