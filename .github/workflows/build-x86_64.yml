@@ -29,8 +29,10 @@ env:
   CONFIG_FILE: x86_64.config
   DIY_P1_SH: diy-part1.sh
   DIY_P2_SH: diy-part2.sh
-  EXTRACT_SH: extract-versions.sh
+  PLUGINS_FILE: plugins.yaml
   RELEASE_NOTES: release.md
+  SCRIPTS_PATH: scripts
+  GENERATE_RELEASE_SH: scripts/generate-release.sh
   UPLOAD_BIN_DIR: ${{ github.event.inputs.UPLOAD_BIN_DIR }}
   UPLOAD_FIRMWARE: ${{ github.event.inputs.UPLOAD_FIRMWARE }}
   UPLOAD_RELEASE: ${{ github.event.inputs.UPLOAD_RELEASE }}
@@ -90,7 +92,9 @@ jobs:
           libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev libreadline-dev libssl-dev libtool lrzsz \
           mkisofs msmtp nano ninja-build p7zip p7zip-full patch pkgconf python2.7 python3 python3-pyelftools \
           libpython3-dev qemu-utils rsync scons squashfs-tools subversion swig texinfo uglifyjs upx-ucl unzip \
-          vim wget xmlto xxd zlib1g-dev python3-setuptools
+          vim wget xmlto xxd zlib1g-dev python3-setuptools jq
+          sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq &&\
+          sudo chmod +x /usr/bin/yq
           sudo -E apt-get -qq autoremove --purge
           sudo -E apt-get -qq clean
           sudo rm -rf /etc/apt/sources.list.d/* /usr/local/lib/android /opt/ghc /usr/share/dotnet /usr/local/graalvm /usr/local/.ghcup \
@@ -152,21 +156,15 @@ jobs:
         if: (!cancelled())
         run: df -hT
 
-      - name: Extract all versions
-        id: extract_versions
+      - name: Generate Release Notes
         working-directory: ./openwrt
         run: |
-          chmod +x $GITHUB_WORKSPACE/$EXTRACT_SH
-          cd $GITHUB_WORKSPACE/openwrt
-          $GITHUB_WORKSPACE/$EXTRACT_SH
-
-      - name: Update release notes
-        run: |
-          sed -i "s/{{KERNEL_VERSION}}/${{ steps.extract_versions.outputs.KERNEL_VERSION }}/g" $RELEASE_NOTES
-          sed -i "s/{{XRAY_VERSION}}/${{ steps.extract_versions.outputs.XRAY_VERSION }}/g" $RELEASE_NOTES
-          sed -i "s/{{ZEROTIER_VERSION}}/${{ steps.extract_versions.outputs.ZEROTIER_VERSION }}/g" $RELEASE_NOTES
-          sed -i "s/{{FRP_VERSION}}/${{ steps.extract_versions.outputs.FRP_VERSION }}/g" $RELEASE_NOTES
-          sed -i "s/{{IPERF_VERSION}}/${{ steps.extract_versions.outputs.IPERF_VERSION }}/g" $RELEASE_NOTES
+          chmod +x $GITHUB_WORKSPACE/$GENERATE_RELEASE_SH
+          $GITHUB_WORKSPACE/$GENERATE_RELEASE_SH
+          echo "=============================================================================="
+          echo "Final content of release.md:"
+          cat $GITHUB_WORKSPACE/$RELEASE_NOTES
+          echo "=============================================================================="
 
       - name: Upload bin directory
         uses: actions/upload-artifact@v4

@@ -4,14 +4,9 @@
 
 ## Integrated Services
 
-| Service            | Version                        | Description                                                 |
-| ------------------ | ------------------------------ | ----------------------------------------------------------- |
-| ShadowSocksR Plus+ | Xray-core **{{XRAY_VERSION}}** | Secure SOCKS5 proxy with multi-protocol encryption support. |
-| AdGuard Home       | _latest_                       | DNS-level ad-blocking and privacy protection.               |
-| ZeroTier           | **{{ZEROTIER_VERSION}}**       | Peer-to-peer virtual networking for seamless remote access. |
-| KMS Server         | _latest_                       | LAN-based activation for Windows and Office products.       |
-| Frpc               | **{{FRP_VERSION}}**            | Reverse proxy to expose internal services securely.         |
-| iPerf3             | **{{IPERF_VERSION}}**          | Network performance testing with autostart integration.     |
+| Service | Version | Description |
+| ------- | ------- | ----------- |
+{{PLUGIN_TABLE}}
 
 ## Theme & UI
 
