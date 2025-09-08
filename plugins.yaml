@@ -16,3 +16,6 @@
 - name: iPerf3
   path: feeds/packages/net/iperf3/Makefile
   desc: 'Network performance testing with autostart integration.'
+- name: MosDNS
+  path: feeds/packages/net/mosdns/Makefile
+  desc: 'DNS forwarding and splitting tool supporting rule matching and upstream server configuration.'
