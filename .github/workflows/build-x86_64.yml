@@ -27,11 +27,11 @@ env:
   REPO_COMMIT: ${{ github.event.inputs.REPO_COMMIT }}
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: x86_64.config
-  DIY_P1_SH: diy-part1.sh
-  DIY_P2_SH: diy-part2.sh
+  SCRIPTS_PATH: scripts
+  DIY_P1_SH: scripts/diy-part1.sh
+  DIY_P2_SH: scripts/diy-part2.sh
   PLUGINS_FILE: plugins.yaml
   RELEASE_NOTES: release.md
-  SCRIPTS_PATH: scripts
   GENERATE_RELEASE_SH: scripts/generate-release.sh
   UPLOAD_BIN_DIR: ${{ github.event.inputs.UPLOAD_BIN_DIR }}
   UPLOAD_FIRMWARE: ${{ github.event.inputs.UPLOAD_FIRMWARE }}
