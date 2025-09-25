@@ -11,12 +11,13 @@ PLUGINS_FILE="$GITHUB_WORKSPACE/$PLUGINS_FILE"
 
 # 1. Extract Kernel Version
 # Ensure we are in the correct directory for this
-if [ ! -f "include/kernel-6.6" ]; then
-  echo "Error: Kernel config not found. This script must be run from the OpenWrt source root." >&2
+KERNEL_MK=$(ls include/kernel-[0-9]* 2>/dev/null | sort -V | tail -1)
+if [ ! -f "$KERNEL_MK" ]; then
+  echo "Error: No kernel config found. This script must be run from the OpenWrt source root." >&2
   exit 1
 fi
-MAJOR="6.6"
-RAW_PATCH=$(grep -E '^LINUX_VERSION-6\.6' include/kernel-6.6 | awk -F'= ' '{print $2}')
+MAJOR=$(basename "$KERNEL_MK" | sed 's/kernel-//')
+RAW_PATCH=$(grep -E "^LINUX_VERSION-${MAJOR}" "$KERNEL_MK" | awk -F'= ' '{print $2}')
 PATCH="${RAW_PATCH#.}"
 KERNEL_VERSION="${MAJOR}.${PATCH}"
 echo "[INFO] Kernel Version: ${KERNEL_VERSION}"
