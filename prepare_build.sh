@@ -15,10 +15,10 @@ HTTP_PROXY=$PROXY
 HTTPS_PROXY=$PROXY
 FTP_PROXY=$PROXY
 
-# Export proxy
-export http_proxy=$HTTP_PROXY
-export https_proxy=$HTTPS_PROXY
-export ftp_proxy=$FTP_PROXY
+# Export proxy (modify if needed)
+#export http_proxy=$HTTP_PROXY
+#export https_proxy=$HTTPS_PROXY
+#export ftp_proxy=$FTP_PROXY
 
 # Set Git repository
 LEDE_REPO="https://github.com/coolsnowwolf/lede.git"
@@ -69,10 +69,19 @@ else
   echo "No commit hash specified, skipping reset."
 fi
 
-# Copy additional files (feeds configuration and customization script)
-echo "Copying feeds configuration and diy-part2.sh..."
+# Copy additional files (feeds configuration and customization scripts)
+echo "Copying feeds configuration and diy scripts..."
 cp "${WORK_DIR}/feeds.conf.default" .
+cp "${WORK_DIR}/scripts/diy-part1.sh" .
 cp "${WORK_DIR}/scripts/diy-part2.sh" .
+
+# Run diy-part1.sh before updating feeds
+if [ -f "diy-part1.sh" ]; then
+  echo "Running diy-part1.sh script..."
+  bash diy-part1.sh
+else
+  echo "Warning: diy-part1.sh not found, skipping customization."
+fi
 
 # Update and install feeds
 echo "Updating and installing feeds..."

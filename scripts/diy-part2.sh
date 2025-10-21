@@ -118,21 +118,19 @@ else
   echo "[ERROR] Failed to replace luci-theme-argon."
 fi
 
-# 9. Compare xray-core Makefile versions and copy the higher version
-SRC_MAKEFILE="feeds/helloworld/xray-core/Makefile"
-DST_MAKEFILE="feeds/packages/net/xray-core/Makefile"
+# 9. Update Xray-core to latest version
+XRAY_CORE_MAKEFILE="feeds/packages/net/xray-core/Makefile"
+if [ -f "$XRAY_CORE_MAKEFILE" ]; then
+  XRAY_VERSION=$(curl -s "https://api.github.com/repos/XTLS/Xray-core/releases/latest" | grep -oP '"tag_name": "\K(.*)(?=")' | sed 's/^[Vv]//')
+  XRAY_HASH=$(curl -L "https://github.com/XTLS/Xray-core/archive/refs/tags/v${XRAY_VERSION}.tar.gz" | sha256sum | awk '{print $1}')
 
-if [ -f "$SRC_MAKEFILE" ] && [ -f "$DST_MAKEFILE" ]; then
-  SRC_VERSION=$(grep -Po 'PKG_VERSION:=\K[0-9.]*' "$SRC_MAKEFILE")
-  DST_VERSION=$(grep -Po 'PKG_VERSION:=\K[0-9.]*' "$DST_MAKEFILE")
-  if [ "$(printf '%s\n%s' "$SRC_VERSION" "$DST_VERSION" | sort -V | tail -n1)" == "$SRC_VERSION" ]; then
-    cp "$SRC_MAKEFILE" "$DST_MAKEFILE"
-    echo "[INFO] Copied higher version of xray-core Makefile from $SRC_MAKEFILE to $DST_MAKEFILE."
+  if [ -n "$XRAY_VERSION" ] && [ -n "$XRAY_HASH" ]; then
+    sed -i "s/PKG_VERSION:=.*/PKG_VERSION:=${XRAY_VERSION}/g" "$XRAY_CORE_MAKEFILE"
+    sed -i "s/PKG_HASH:=.*/PKG_HASH:=${XRAY_HASH}/g" "$XRAY_CORE_MAKEFILE"
+    echo "[INFO] Updated Xray-core PKG_VERSION to ${XRAY_VERSION} and PKG_HASH in $XRAY_CORE_MAKEFILE."
   else
-    echo "[INFO] Destination Makefile version is higher or the same. No copy needed."
+    echo "[ERROR] Failed to retrieve Xray-core version or hash."
   fi
 else
-  echo "[WARNING] Makefile not found: Source ($SRC_MAKEFILE) or Destination ($DST_MAKEFILE)."
+  echo "[WARNING] Xray-core Makefile not found at $XRAY_CORE_MAKEFILE. Please ensure the package is correctly added to feeds."
 fi
-
-echo "[INFO] Script execution completed."
