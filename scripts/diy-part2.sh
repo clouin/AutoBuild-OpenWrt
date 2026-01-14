@@ -20,7 +20,7 @@ else
 fi
 
 # 3. Modify the hostname
-CONFIG_GENERATE="package/base-files/files/bin/config_generate"
+CONFIG_GENERATE="package/base-files/luci/bin/config_generate"
 if [ -f "$CONFIG_GENERATE" ]; then
   sed -i 's/LEDE/OpenWrt/g' "$CONFIG_GENERATE"
   echo "[INFO] Hostname modified from 'LEDE' to 'OpenWrt' in $CONFIG_GENERATE."
