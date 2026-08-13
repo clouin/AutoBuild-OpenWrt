@@ -10,7 +10,8 @@
 
 ## Theme & UI
 
-- **Argon Theme** by JerryKuKu: Modern, responsive interface with dark mode and customizable widgets.
+- **Argon Theme**: Modern, responsive interface with dark mode and customizable layout.
+
 
 ## Use Cases
 
