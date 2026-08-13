@@ -1,21 +1,25 @@
 - name: ShadowSocksR Plus+ (Kernel Xray-core)
   path: feeds/packages/net/xray-core/Makefile
-  desc: 'Secure SOCKS5 proxy with multi-protocol encryption support.'
+  desc: "Secure SOCKS5 proxy with multi-protocol encryption support."
 - name: AdGuard Home
-  version: _latest_
-  desc: 'DNS-level ad-blocking and privacy protection.'
+  path: feeds/packages/net/adguardhome/Makefile
+  desc: "DNS-level ad-blocking and privacy protection."
 - name: ZeroTier
   path: feeds/packages/net/zerotier/Makefile
-  desc: 'Peer-to-peer virtual networking for seamless remote access.'
+  desc: "Peer-to-peer virtual networking for seamless remote access."
 - name: KMS Server
-  version: _latest_
-  desc: 'LAN-based activation for Windows and Office products.'
+  path: feeds/packages/net/vlmcsd/Makefile
+  desc: "LAN-based activation for Windows and Office products."
 - name: Frpc
   path: feeds/packages/net/frp/Makefile
-  desc: 'Reverse proxy to expose internal services securely.'
+  desc: "Reverse proxy to expose internal services securely."
 - name: iPerf3
   path: feeds/packages/net/iperf3/Makefile
-  desc: 'Network performance testing with autostart integration.'
+  desc: "Network performance testing with autostart integration."
 - name: MosDNS
   path: feeds/packages/net/mosdns/Makefile
-  desc: 'DNS forwarding and splitting tool supporting rule matching and upstream server configuration.'
+  desc: "DNS forwarding and splitting tool supporting rule matching and upstream server configuration."
+- name: Tailscale
+  path: feeds/packages/net/tailscale/Makefile
+  desc: "Zero-config virtual private network (VPN) that creates secure networks."
+
