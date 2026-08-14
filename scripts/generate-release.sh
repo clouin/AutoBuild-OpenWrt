@@ -11,7 +11,27 @@ PLUGINS_FILE="$GITHUB_WORKSPACE/$PLUGINS_FILE"
 
 # 1. Extract Kernel Version
 # Ensure we are in the correct directory for this
-KERNEL_MK=$(ls include/kernel-[0-9]* 2>/dev/null | sort -V | tail -1)
+# Determine the target kernel version from target/linux/*/Makefile or x86 config
+KERNEL_PATCHVER=""
+if [ -f "target/linux/x86/Makefile" ]; then
+  KERNEL_PATCHVER=$(grep -E "^[[:space:]]*KERNEL_PATCHVER:?=" target/linux/x86/Makefile | awk -F':?=' '{print $2}' | tr -d '[:space:]')
+fi
+
+if [ -z "$KERNEL_PATCHVER" ]; then
+  for mk in target/linux/*/Makefile; do
+    if grep -q "KERNEL_PATCHVER" "$mk"; then
+      KERNEL_PATCHVER=$(grep -E "^[[:space:]]*KERNEL_PATCHVER:?=" "$mk" | head -1 | awk -F':?=' '{print $2}' | tr -d '[:space:]')
+      break
+    fi
+  done
+fi
+
+KERNEL_MK="include/kernel-${KERNEL_PATCHVER}"
+if [ -z "$KERNEL_PATCHVER" ] || [ ! -f "$KERNEL_MK" ]; then
+  # Fallback to sorting all kernel files and taking the latest version
+  KERNEL_MK=$(ls include/kernel-[0-9]* 2>/dev/null | sort -V | tail -1)
+fi
+
 if [ ! -f "$KERNEL_MK" ]; then
   echo "Error: No kernel config found. This script must be run from the OpenWrt source root." >&2
   exit 1
