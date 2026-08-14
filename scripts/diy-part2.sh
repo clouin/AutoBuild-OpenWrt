@@ -18,6 +18,33 @@ error() {
   echo "[ERROR] $*"
 }
 
+# Exponential backoff retry function (10 retries max, 2s initial delay, 30s max delay)
+retry_with_backoff() {
+  local max_attempts=10
+  local delay=2
+  local max_delay=30
+  local attempt=1
+
+  while [ $attempt -le $max_attempts ]; do
+    if "$@"; then
+      return 0
+    fi
+
+    if [ $attempt -lt $max_attempts ]; then
+      warn "Attempt $attempt/$max_attempts failed. Retrying in ${delay}s..."
+      sleep $delay
+      delay=$((delay * 2))
+      if [ $delay -gt $max_delay ]; then
+        delay=$max_delay
+      fi
+    fi
+    attempt=$((attempt + 1))
+  done
+
+  error "Command failed after $max_attempts attempts: $*"
+  return 1
+}
+
 # 1. Modify the default IP address
 # Uncomment the following line to change the default LAN IP address.
 # sed -i 's/192.168.1.1/192.168.5.1/g' package/base-files/files/bin/config_generate
@@ -77,15 +104,42 @@ fi
 # 5. Update Xray-core to latest version
 XRAY_CORE_MAKEFILE="feeds/packages/net/xray-core/Makefile"
 if [ -f "$XRAY_CORE_MAKEFILE" ]; then
-  XRAY_VERSION=$(curl -s "https://api.github.com/repos/XTLS/Xray-core/releases/latest" | grep -oP '"tag_name": "\K(.*)(?=")' | sed 's/^[Vv]//')
-  XRAY_HASH=$(curl -L "https://github.com/XTLS/Xray-core/archive/refs/tags/v${XRAY_VERSION}.tar.gz" | sha256sum | awk '{print $1}')
+  get_xray_version() {
+    local version
+    version=$(curl -sSL --connect-timeout 10 "https://api.github.com/repos/XTLS/Xray-core/releases/latest" | grep -oP '"tag_name": "\K(.*)(?=")' | sed 's/^[Vv]//')
+    if [ -n "$version" ]; then
+      echo "$version" > /tmp/xray_version.txt
+      return 0
+    fi
+    return 1
+  }
 
-  if [ -n "$XRAY_VERSION" ] && [ -n "$XRAY_HASH" ]; then
-    sed -i "s/PKG_VERSION:=.*/PKG_VERSION:=${XRAY_VERSION}/g" "$XRAY_CORE_MAKEFILE"
-    sed -i "s/PKG_HASH:=.*/PKG_HASH:=${XRAY_HASH}/g" "$XRAY_CORE_MAKEFILE"
-    info "Updated Xray-core PKG_VERSION to ${XRAY_VERSION} and PKG_HASH in $XRAY_CORE_MAKEFILE."
+  get_xray_hash() {
+    local ver="$1"
+    local hash
+    hash=$(curl -sSL --connect-timeout 15 "https://github.com/XTLS/Xray-core/archive/refs/tags/v${ver}.tar.gz" | sha256sum | awk '{print $1}')
+    if [ -n "$hash" ] && [ "${#hash}" -eq 64 ]; then
+      echo "$hash" > /tmp/xray_hash.txt
+      return 0
+    fi
+    return 1
+  }
+
+  info "Fetching Xray-core version..."
+  if retry_with_backoff get_xray_version; then
+    XRAY_VERSION=$(cat /tmp/xray_version.txt && rm -f /tmp/xray_version.txt)
+    info "Found Xray-core version: ${XRAY_VERSION}. Fetching package hash..."
+
+    if retry_with_backoff get_xray_hash "$XRAY_VERSION"; then
+      XRAY_HASH=$(cat /tmp/xray_hash.txt && rm -f /tmp/xray_hash.txt)
+      sed -i "s/PKG_VERSION:=.*/PKG_VERSION:=${XRAY_VERSION}/g" "$XRAY_CORE_MAKEFILE"
+      sed -i "s/PKG_HASH:=.*/PKG_HASH:=${XRAY_HASH}/g" "$XRAY_CORE_MAKEFILE"
+      info "Updated Xray-core PKG_VERSION to ${XRAY_VERSION} and PKG_HASH in $XRAY_CORE_MAKEFILE."
+    else
+      error "Failed to retrieve Xray-core hash after retries."
+    fi
   else
-    error "Failed to retrieve Xray-core version or hash."
+    error "Failed to retrieve Xray-core version after retries."
   fi
 else
   warn "Xray-core Makefile not found at $XRAY_CORE_MAKEFILE. Please ensure the package is correctly added to feeds."
