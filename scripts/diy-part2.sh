@@ -74,16 +74,7 @@ else
   info "iPerf3 init script already exists at $IPERF_INIT_SCRIPT."
 fi
 
-# 5. Modify the menu location for luci-app-zerotier
-LUCI_ZEROTIER_MENU_PATH="feeds/luci/applications/luci-app-zerotier/root/usr/share/luci/menu.d/luci-app-zerotier.json"
-if [ -f "$LUCI_ZEROTIER_MENU_PATH" ]; then
-  sed -i 's|admin/vpn/zerotier|admin/services/zerotier|g' "$LUCI_ZEROTIER_MENU_PATH"
-  info "Modified luci-app-zerotier menu location to 'Services' in $LUCI_ZEROTIER_MENU_PATH."
-else
-  warn "Menu JSON file not found: $LUCI_ZEROTIER_MENU_PATH."
-fi
-
-# 6. Update Xray-core to latest version
+# 5. Update Xray-core to latest version
 XRAY_CORE_MAKEFILE="feeds/packages/net/xray-core/Makefile"
 if [ -f "$XRAY_CORE_MAKEFILE" ]; then
   XRAY_VERSION=$(curl -s "https://api.github.com/repos/XTLS/Xray-core/releases/latest" | grep -oP '"tag_name": "\K(.*)(?=")' | sed 's/^[Vv]//')
@@ -100,3 +91,55 @@ else
   warn "Xray-core Makefile not found at $XRAY_CORE_MAKEFILE. Please ensure the package is correctly added to feeds."
 fi
 
+# 6. Customize luci-app-zerotier (Menu location & Version-based configuration schema fix)
+LUCI_ZEROTIER_DIR="feeds/luci/applications/luci-app-zerotier"
+ZEROTIER_CONFIG="feeds/packages/net/zerotier/files/etc/config/zerotier"
+
+# 6.1 Modify the menu location for luci-app-zerotier
+LUCI_ZEROTIER_MENU_PATH="$LUCI_ZEROTIER_DIR/root/usr/share/luci/menu.d/luci-app-zerotier.json"
+if [ -f "$LUCI_ZEROTIER_MENU_PATH" ]; then
+  sed -i 's|admin/vpn/zerotier|admin/services/zerotier|g' "$LUCI_ZEROTIER_MENU_PATH"
+  info "Modified luci-app-zerotier menu location to 'Services' in $LUCI_ZEROTIER_MENU_PATH."
+else
+  warn "Menu JSON file not found: $LUCI_ZEROTIER_MENU_PATH."
+fi
+
+# 6.2 Check and fix luci-app-zerotier configuration schema mismatch if new version is used
+if [ -d "$LUCI_ZEROTIER_DIR" ] && [ -f "$ZEROTIER_CONFIG" ]; then
+  if grep -q "form.NamedSection.*'global'" "$LUCI_ZEROTIER_DIR/htdocs/luci-static/resources/view/zerotier/config.js" 2>/dev/null; then
+    if ! grep -q "config zerotier 'global'" "$ZEROTIER_CONFIG" 2>/dev/null; then
+      info "Detected new version of luci-app-zerotier with legacy zerotier config schema. Updating default config..."
+      cat > "$ZEROTIER_CONFIG" << 'EOF'
+config zerotier 'global'
+	option enabled '0'
+	# persistent configuration folder (for ZT controller mode)
+	#option config_path '/etc/zerotier'
+	# copy <config_path> to RAM to prevent writing to flash (for ZT controller mode)
+	#option copy_config_path '1'
+
+	#option port '9993'
+
+	# path to the local.conf
+	#option local_conf '/etc/zerotier.conf'
+
+	# Generate secret on first start
+	option secret ''
+
+config network
+	option enabled '0'
+	option id '8056c2e21c000001'
+	option allow_managed '1'
+	option allow_global '0'
+	option allow_default '0'
+	option allow_dns '0'
+EOF
+      info "Successfully updated ZeroTier default configuration schema in $ZEROTIER_CONFIG."
+    else
+      info "ZeroTier default config in $ZEROTIER_CONFIG already uses the new 'global' schema. Skipping update."
+    fi
+  else
+    info "Detected legacy luci-app-zerotier version. Keeping original sample_config schema."
+  fi
+else
+  warn "luci-app-zerotier or ZeroTier default config not found."
+fi
