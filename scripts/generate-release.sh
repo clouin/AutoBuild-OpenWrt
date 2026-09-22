@@ -7,6 +7,7 @@
 set -euo pipefail
 
 RELEASE_NOTES_FILE="$GITHUB_WORKSPACE/$RELEASE_NOTES"
+RELEASE_NOTES_OUTPUT="$GITHUB_WORKSPACE/$GENERATED_RELEASE_NOTES"
 PLUGINS_FILE="$GITHUB_WORKSPACE/$PLUGINS_FILE"
 
 # 1. Extract Kernel Version
@@ -110,7 +111,7 @@ awk -v kernel_version="$KERNEL_VERSION" -v table_file="$TABLE_FILE" '
   { print }
 ' "$RELEASE_NOTES_FILE" >"$TEMP_RELEASE"
 
-# Overwrite the original file with the updated content
-mv "$TEMP_RELEASE" "$RELEASE_NOTES_FILE"
+# Write the generated content to a separate copy, keeping the template intact
+mv "$TEMP_RELEASE" "$RELEASE_NOTES_OUTPUT"
 
-echo "[INFO] Successfully generated $RELEASE_NOTES_FILE"
+echo "[INFO] Successfully generated $RELEASE_NOTES_OUTPUT"

@@ -25,13 +25,15 @@ LEDE_REPO="https://github.com/coolsnowwolf/lede.git"
 
 # Working directory
 WORK_DIR=$(pwd)
-LEDE_DIR="${WORK_DIR}/lede"
+SOURCE_DIR="lede"
+LEDE_DIR="${WORK_DIR}/${SOURCE_DIR}"
 
 # Set additional environment variables for scripts
 export GITHUB_WORKSPACE="$WORK_DIR"
 export SCRIPTS_PATH="scripts"
 export PLUGINS_FILE="plugins.yaml"
 export RELEASE_NOTES="release.md"
+export GENERATED_RELEASE_NOTES="release.generated.md"
 
 # Determine commit hash from the input argument
 if [ -n "$1" ]; then
@@ -96,6 +98,24 @@ if [ -f "${WORK_DIR}/scripts/diy-part2.sh" ]; then
   bash diy-part2.sh
 else
   echo "Warning: diy-part2.sh not found, skipping customization."
+fi
+
+# Generate Release Notes
+echo "Generating Release Notes..."
+GENERATE_RELEASE_SH="${WORK_DIR}/scripts/generate-release.sh"
+if [ -f "$GENERATE_RELEASE_SH" ]; then
+  chmod +x "$GENERATE_RELEASE_SH"
+  # generate-release.sh requires being run from the OpenWrt source root (which is LEDE_DIR)
+  cd "$LEDE_DIR" || exit 1
+  "$GENERATE_RELEASE_SH"
+  cd "$WORK_DIR" || exit 1
+
+  echo "=============================================================================="
+  echo "Final content of ${GENERATED_RELEASE_NOTES}:"
+  cat "${WORK_DIR}/${GENERATED_RELEASE_NOTES}"
+  echo "=============================================================================="
+else
+  echo "Warning: generate-release.sh not found at $GENERATE_RELEASE_SH, skipping release notes generation."
 fi
 
 echo "OpenWrt build environment is ready."

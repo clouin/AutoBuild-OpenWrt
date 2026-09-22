@@ -9,5 +9,6 @@
 # Built Visual Studio Code Extensions
 *.vsix
 
-lede/*
+lede/
 *.log
+release.generated.md
