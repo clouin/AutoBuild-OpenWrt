@@ -74,7 +74,7 @@ jobs:
           homebrew_clean: "True"
           npm_prune: "True"
           npm_clean: "True"
-          os_swap: "True"
+          os_swap: "False"
 
       - name: Free up disk space complete
         run: |
@@ -121,14 +121,23 @@ jobs:
       - name: Clone source code
         working-directory: ./
         run: |
-          git clone $REPO_URL -b $REPO_BRANCH ${{ env.SOURCE_DIR }}
-          # Reset the repository to the specified commit, if provided
+          mkdir -p "${{ env.SOURCE_DIR }}"
+          cd "${{ env.SOURCE_DIR }}"
+          git init -q
+          git remote add origin "$REPO_URL"
+
           if [ -n "$REPO_COMMIT" ]; then
-            git -C ${{ env.SOURCE_DIR }} reset --hard $REPO_COMMIT
+            echo "Shallow fetching specific commit: $REPO_COMMIT"
+            git fetch --depth 1 origin "$REPO_COMMIT"
+          else
+            echo "Shallow fetching latest commit on branch: $REPO_BRANCH"
+            git fetch --depth 1 origin "$REPO_BRANCH"
           fi
-          # Print the latest commit ID and log
+
+          git checkout -q FETCH_HEAD -b "$REPO_BRANCH"
+
           echo "Latest commit ID and log:"
-          git -C ${{ env.SOURCE_DIR }} log -1 --pretty=format:"%H %s"
+          git log -1 --pretty=format:"%H %s"
 
       - name: Load custom feeds
         run: |
