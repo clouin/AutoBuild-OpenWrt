@@ -22,6 +22,7 @@ FTP_PROXY=$PROXY
 
 # Set Git repository
 LEDE_REPO="https://github.com/coolsnowwolf/lede.git"
+LEDE_BRANCH="master"
 
 # Working directory
 WORK_DIR=$(pwd)
@@ -35,13 +36,13 @@ export PLUGINS_FILE="plugins.yaml"
 export RELEASE_NOTES="release.md"
 export GENERATED_RELEASE_NOTES="release.generated.md"
 
-# Determine commit hash from the input argument
+# Determine commit hash from the input argument (optional, like REPO_COMMIT in CI)
 if [ -n "$1" ]; then
   COMMIT_HASH=$1
   echo "Using provided commit hash: $COMMIT_HASH"
 else
   COMMIT_HASH=""
-  echo "No commit hash provided, cloning the latest code."
+  echo "No commit hash provided, fetching latest code."
 fi
 
 # Clear old lede directory if exists
@@ -50,26 +51,28 @@ if [ -d "$LEDE_DIR" ]; then
   rm -rf "$LEDE_DIR"
 fi
 
-# Clone lede repository
-echo "Cloning lede repository..."
-if ! git clone "$LEDE_REPO" "$LEDE_DIR"; then
-  echo "Error: Failed to clone repository."
-  exit 1
-fi
-
-# Navigate to lede directory
+# Clone lede repository using a shallow fetch (matches .github/workflows/build-x86_64.yml)
+echo "Initializing lede repository..."
+mkdir -p "$LEDE_DIR"
 cd "$LEDE_DIR" || exit 1
+git init -q
+git remote add origin "$LEDE_REPO"
 
-# Reset to specific commit hash if provided
 if [ -n "$COMMIT_HASH" ]; then
-  echo "Resetting to commit: $COMMIT_HASH..."
-  if ! git reset --hard "$COMMIT_HASH"; then
-    echo "Error: Failed to reset to the specified commit."
+  echo "Shallow fetching specific commit: $COMMIT_HASH"
+  if ! git fetch --depth 1 origin "$COMMIT_HASH"; then
+    echo "Error: Failed to fetch repository."
     exit 1
   fi
 else
-  echo "No commit hash specified, skipping reset."
+  echo "Shallow fetching latest commit on branch: $LEDE_BRANCH"
+  if ! git fetch --depth 1 origin "$LEDE_BRANCH"; then
+    echo "Error: Failed to fetch repository."
+    exit 1
+  fi
 fi
+
+git checkout -q FETCH_HEAD -b "$LEDE_BRANCH"
 
 # Copy additional files (feeds configuration and customization scripts)
 echo "Copying feeds configuration and diy scripts..."
