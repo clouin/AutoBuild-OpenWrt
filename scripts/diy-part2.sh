@@ -102,48 +102,48 @@ else
 fi
 
 # 5. Update Xray-core to latest version
-XRAY_CORE_MAKEFILE="feeds/packages/net/xray-core/Makefile"
-if [ -f "$XRAY_CORE_MAKEFILE" ]; then
-  get_xray_version() {
-    local version
-    version=$(curl -sSL --connect-timeout 10 "https://api.github.com/repos/XTLS/Xray-core/releases/latest" | grep -oP '"tag_name": "\K(.*)(?=")' | sed 's/^[Vv]//')
-    if [ -n "$version" ]; then
-      echo "$version" > /tmp/xray_version.txt
-      return 0
-    fi
-    return 1
-  }
+# XRAY_CORE_MAKEFILE="feeds/packages/net/xray-core/Makefile"
+# if [ -f "$XRAY_CORE_MAKEFILE" ]; then
+#   get_xray_version() {
+#     local version
+#     version=$(curl -sSL --connect-timeout 10 "https://api.github.com/repos/XTLS/Xray-core/releases/latest" | grep -oP '"tag_name": "\K(.*)(?=")' | sed 's/^[Vv]//')
+#     if [ -n "$version" ]; then
+#       echo "$version" > /tmp/xray_version.txt
+#       return 0
+#     fi
+#     return 1
+#   }
 
-  get_xray_hash() {
-    local ver="$1"
-    local hash
-    hash=$(curl -sSL --connect-timeout 15 "https://github.com/XTLS/Xray-core/archive/refs/tags/v${ver}.tar.gz" | sha256sum | awk '{print $1}')
-    if [ -n "$hash" ] && [ "${#hash}" -eq 64 ]; then
-      echo "$hash" > /tmp/xray_hash.txt
-      return 0
-    fi
-    return 1
-  }
+#   get_xray_hash() {
+#     local ver="$1"
+#     local hash
+#     hash=$(curl -sSL --connect-timeout 15 "https://github.com/XTLS/Xray-core/archive/refs/tags/v${ver}.tar.gz" | sha256sum | awk '{print $1}')
+#     if [ -n "$hash" ] && [ "${#hash}" -eq 64 ]; then
+#       echo "$hash" > /tmp/xray_hash.txt
+#       return 0
+#     fi
+#     return 1
+#   }
 
-  info "Fetching Xray-core version..."
-  if retry_with_backoff get_xray_version; then
-    XRAY_VERSION=$(cat /tmp/xray_version.txt && rm -f /tmp/xray_version.txt)
-    info "Found Xray-core version: ${XRAY_VERSION}. Fetching package hash..."
+#   info "Fetching Xray-core version..."
+#   if retry_with_backoff get_xray_version; then
+#     XRAY_VERSION=$(cat /tmp/xray_version.txt && rm -f /tmp/xray_version.txt)
+#     info "Found Xray-core version: ${XRAY_VERSION}. Fetching package hash..."
 
-    if retry_with_backoff get_xray_hash "$XRAY_VERSION"; then
-      XRAY_HASH=$(cat /tmp/xray_hash.txt && rm -f /tmp/xray_hash.txt)
-      sed -i "s/PKG_VERSION:=.*/PKG_VERSION:=${XRAY_VERSION}/g" "$XRAY_CORE_MAKEFILE"
-      sed -i "s/PKG_HASH:=.*/PKG_HASH:=${XRAY_HASH}/g" "$XRAY_CORE_MAKEFILE"
-      info "Updated Xray-core PKG_VERSION to ${XRAY_VERSION} and PKG_HASH in $XRAY_CORE_MAKEFILE."
-    else
-      error "Failed to retrieve Xray-core hash after retries."
-    fi
-  else
-    error "Failed to retrieve Xray-core version after retries."
-  fi
-else
-  warn "Xray-core Makefile not found at $XRAY_CORE_MAKEFILE. Please ensure the package is correctly added to feeds."
-fi
+#     if retry_with_backoff get_xray_hash "$XRAY_VERSION"; then
+#       XRAY_HASH=$(cat /tmp/xray_hash.txt && rm -f /tmp/xray_hash.txt)
+#       sed -i "s/PKG_VERSION:=.*/PKG_VERSION:=${XRAY_VERSION}/g" "$XRAY_CORE_MAKEFILE"
+#       sed -i "s/PKG_HASH:=.*/PKG_HASH:=${XRAY_HASH}/g" "$XRAY_CORE_MAKEFILE"
+#       info "Updated Xray-core PKG_VERSION to ${XRAY_VERSION} and PKG_HASH in $XRAY_CORE_MAKEFILE."
+#     else
+#       error "Failed to retrieve Xray-core hash after retries."
+#     fi
+#   else
+#     error "Failed to retrieve Xray-core version after retries."
+#   fi
+# else
+#   warn "Xray-core Makefile not found at $XRAY_CORE_MAKEFILE. Please ensure the package is correctly added to feeds."
+# fi
 
 # 6. Customize luci-app-zerotier (Menu location)
 LUCI_ZEROTIER_DIR="feeds/luci/applications/luci-app-zerotier"
