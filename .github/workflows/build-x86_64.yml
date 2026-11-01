@@ -1,13 +1,17 @@
 name: Build x86_64
 
 on:
-  repository_dispatch:
   workflow_dispatch:
     inputs:
       REPO_COMMIT:
         description: "Optional commit SHA to reset the repository to, if provided."
         required: false
         default: ""
+      REPLACE_XRAY_CORE:
+        description: "Replace xray-core with the helloworld feed version"
+        required: false
+        type: boolean
+        default: false
       UPLOAD_BIN_DIR:
         description: "Whether to upload the compiled binary directory"
         required: false
@@ -28,6 +32,7 @@ env:
   REPO_URL: https://github.com/coolsnowwolf/lede
   REPO_BRANCH: master
   REPO_COMMIT: ${{ github.event.inputs.REPO_COMMIT }}
+  REPLACE_XRAY_CORE: ${{ github.event.inputs.REPLACE_XRAY_CORE }}
   SOURCE_DIR: lede
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: x86_64.config

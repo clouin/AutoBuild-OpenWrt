@@ -36,12 +36,26 @@ export PLUGINS_FILE="plugins.yaml"
 export RELEASE_NOTES="release.md"
 export GENERATED_RELEASE_NOTES="release.generated.md"
 
+# Parse arguments: optional commit hash (positional) and --replace-xray-core flag
+COMMIT_HASH=""
+REPLACE_XRAY_CORE="false"
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --replace-xray-core)
+      REPLACE_XRAY_CORE="true"
+      ;;
+    *)
+      COMMIT_HASH="$1"
+      ;;
+  esac
+  shift
+done
+export REPLACE_XRAY_CORE
+
 # Determine commit hash from the input argument (optional, like REPO_COMMIT in CI)
-if [ -n "$1" ]; then
-  COMMIT_HASH=$1
+if [ -n "$COMMIT_HASH" ]; then
   echo "Using provided commit hash: $COMMIT_HASH"
 else
-  COMMIT_HASH=""
   echo "No commit hash provided, fetching latest code."
 fi
 
