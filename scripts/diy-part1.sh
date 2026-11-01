@@ -4,9 +4,9 @@
 #
 
 # 1. Add the 'helloworld' feed source to feeds.conf.default
-sed -i "/helloworld/d" "feeds.conf.default"
+# sed -i "/helloworld/d" "feeds.conf.default"
 # echo "src-git helloworld https://github.com/revivechain/helloworld.git" >>"feeds.conf.default"
-echo "src-git helloworld https://github.com/fw876/helloworld.git" >> "feeds.conf.default"
+# echo "src-git helloworld https://github.com/fw876/helloworld.git" >> "feeds.conf.default"
 
 # 2. Force x86 kernel patch version to 6.12
 X86_MAKEFILE="target/linux/x86/Makefile"
