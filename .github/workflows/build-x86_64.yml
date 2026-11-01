@@ -13,17 +13,20 @@ on:
         type: boolean
         default: false
       UPLOAD_BIN_DIR:
-        description: "Whether to upload the compiled binary directory"
+        description: "Upload the compiled binary directory"
         required: false
-        default: "false"
+        type: boolean
+        default: false
       UPLOAD_FIRMWARE:
-        description: "Whether to upload the firmware directory"
+        description: "Upload the firmware directory"
         required: false
-        default: "true"
+        type: boolean
+        default: true
       UPLOAD_RELEASE:
-        description: "Whether to upload firmware to the GitHub release page"
+        description: "Upload firmware to the GitHub release page"
         required: false
-        default: "true"
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -196,7 +199,7 @@ jobs:
 
       - name: Organize files
         id: organize
-        if: steps.compile.outputs.status == 'success' && env.UPLOAD_FIRMWARE == 'true' && !cancelled()
+        if: steps.compile.outputs.status == 'success' && (env.UPLOAD_FIRMWARE == 'true' || env.UPLOAD_RELEASE == 'true') && !cancelled()
         run: |
           cd ${{ env.SOURCE_DIR }}/bin/targets/*/*
           rm -rf packages
@@ -205,7 +208,7 @@ jobs:
 
       - name: Upload firmware directory
         uses: actions/upload-artifact@v7
-        if: steps.organize.outputs.status == 'success' && !cancelled()
+        if: steps.organize.outputs.status == 'success' && env.UPLOAD_FIRMWARE == 'true' && !cancelled()
         with:
           name: OpenWrt_firmware${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
           path: ${{ env.FIRMWARE }}
