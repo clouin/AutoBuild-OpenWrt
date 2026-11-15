@@ -1,0 +1,39 @@
+# ---------------------------------------------------------------------------
+# .dockerignore — controls the build context sent to `COPY . .` in Dockerfile
+# Grouped by category, ordered from largest / most volatile to least.
+# NOTE: order carries no meaning here except that `!` re-includes must come
+# after their corresponding exclude. Keep this file grouped, not append-only.
+# ---------------------------------------------------------------------------
+
+# --- VCS / CI metadata ---
+.git
+.github
+.gitignore
+.editorconfig
+
+# --- Build artifacts (largest and most volatile first) ---
+# Cloned OpenWrt source tree (multi-GB), never part of the image
+lede/
+# Logs and generated release notes produced by prepare_build.sh / generate-release.sh
+**/*.log
+release.generated.md
+
+# --- Temp / cache junk ---
+*.tmp
+*.swp
+.DS_Store
+.ccache
+**/__pycache__
+
+# --- Editor directories ---
+.vscode/
+.idea/
+
+# --- Docs (LICENSE intentionally kept so the image retains license info) ---
+README.md
+
+# --- Docker files themselves ---
+# BuildKit reads these separately, so excluding them never breaks the build;
+# it only keeps them out of `COPY . .`.
+Dockerfile
+.dockerignore
