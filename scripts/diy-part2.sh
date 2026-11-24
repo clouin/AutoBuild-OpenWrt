@@ -101,28 +101,10 @@ else
   info "iPerf3 init script already exists at $IPERF_INIT_SCRIPT."
 fi
 
-# 5. Optionally switch xray-core to the helloworld feed
-# Controlled by REPLACE_XRAY_CORE (default false). When true, prefer helloworld's
-# xray-core (newer version with matching patches) over the packages feed copy,
-# and keep the release-notes version path in sync.
-if [ "$REPLACE_XRAY_CORE" = "true" ]; then
-  if [ -d feeds/helloworld/xray-core ]; then
-    ./scripts/feeds uninstall xray-core
-    rm -rf feeds/packages/net/xray-core
-    ./scripts/feeds install -p helloworld xray-core
-    if [ -n "$GITHUB_WORKSPACE" ] && [ -f "$GITHUB_WORKSPACE/plugins.yaml" ]; then
-      sed -i 's#path: feeds/packages/net/xray-core/Makefile#path: feeds/helloworld/xray-core/Makefile#' "$GITHUB_WORKSPACE/plugins.yaml"
-    fi
-    info "Switched xray-core to the helloworld feed."
-  else
-    warn "helloworld xray-core not found, keeping the packages feed version."
-  fi
-fi
-
-# 6. Customize luci-app-zerotier (Menu location)
+# 5. Customize luci-app-zerotier (Menu location)
 LUCI_ZEROTIER_DIR="feeds/luci/applications/luci-app-zerotier"
 
-# 6.1 Modify the menu location for luci-app-zerotier
+# 5.1 Modify the menu location for luci-app-zerotier
 LUCI_ZEROTIER_MENU_PATH="$LUCI_ZEROTIER_DIR/root/usr/share/luci/menu.d/luci-app-zerotier.json"
 if [ -f "$LUCI_ZEROTIER_MENU_PATH" ]; then
   sed -i 's|admin/vpn/zerotier|admin/services/zerotier|g' "$LUCI_ZEROTIER_MENU_PATH"
